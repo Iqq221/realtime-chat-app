@@ -1,9 +1,18 @@
+const mongoose = require("mongoose");
 const Message = require("../models/Message");
 const Conversation = require("../models/Conversation");
 
 const sendMessage = async (req, res) => {
   try {
     const { conversationId, text, image } = req.body;
+
+    // Validate conversation ID
+    if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid conversation ID",
+      });
+    }
 
     // Validate message
     if (!text?.trim() && !image) {
@@ -39,14 +48,14 @@ const sendMessage = async (req, res) => {
     const message = await Message.create({
       conversation: conversationId,
       sender: req.user.id,
-      text,
+      text: text?.trim(),
       image,
     });
 
-    // Update last message
-    await Conversation.findByIdAndUpdate(conversationId, {
-      lastMessage: message._id,
-    });
+    // Update conversation
+    conversation.lastMessage = message._id;
+    conversation.updatedAt = Date.now();
+    await conversation.save();
 
     res.status(201).json({
       success: true,
@@ -63,8 +72,18 @@ const sendMessage = async (req, res) => {
 
 const getMessages = async (req, res) => {
   try {
+    const { conversationId } = req.params;
+
+    // Validate conversation ID
+    if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid conversation ID",
+      });
+    }
+
     // Check if conversation exists
-    const conversation = await Conversation.findById(req.params.conversationId);
+    const conversation = await Conversation.findById(conversationId);
 
     if (!conversation) {
       return res.status(404).json({
@@ -86,7 +105,7 @@ const getMessages = async (req, res) => {
     }
 
     const messages = await Message.find({
-      conversation: req.params.conversationId,
+      conversation: conversationId,
     })
       .populate("sender", "name email")
       .sort({ createdAt: 1 });
