@@ -3,6 +3,8 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./src/config/db");
+const authRoutes = require("./src/routes/authRoutes");
+
 
 dotenv.config();
 
@@ -15,6 +17,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
+
+
+app.use("/api/auth", authRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
