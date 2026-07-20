@@ -117,8 +117,39 @@ const loginUser = async (req, res) => {
     });
   }
 };
+const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const logoutUser = (req, res) => {
+
+  res.clearCookie("token");
+
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
+
+};
+
+
 
 module.exports = {
   registerUser,
   loginUser,
+  getCurrentUser,
+  logoutUser,
 };
