@@ -1,4 +1,6 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -8,7 +10,6 @@ const userRoutes = require("./src/routes/userRoutes");
 const conversationRoutes = require("./src/routes/conversationRoutes");
 const messageRoutes = require("./src/routes/messageRoutes");
 
-
 dotenv.config();
 
 // Connect Database
@@ -16,12 +17,36 @@ connectDB();
 
 const app = express();
 
+// Create HTTP Server
+const server = http.createServer(app);
+
+// Initialize Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("🟢 User connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("🔴 User disconnected:", socket.id);
+  });
+});
+
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 
-
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/conversations", conversationRoutes);
@@ -37,6 +62,7 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+// Start Server
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
