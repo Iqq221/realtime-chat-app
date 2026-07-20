@@ -6,6 +6,8 @@ const connectDB = require("./src/config/db");
 const authRoutes = require("./src/routes/authRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const conversationRoutes = require("./src/routes/conversationRoutes");
+const messageRoutes = require("./src/routes/messageRoutes");
+
 
 dotenv.config();
 
@@ -23,6 +25,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/conversations", conversationRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
