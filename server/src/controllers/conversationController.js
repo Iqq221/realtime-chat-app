@@ -4,12 +4,23 @@ const createConversation = async (req, res) => {
   try {
     const { receiverId } = req.body;
 
-    // Check if conversation already exists
+    if (!receiverId) {
+      return res.status(400).json({
+        success: false,
+        message: "Receiver ID is required",
+      });
+    }
+
     let conversation = await Conversation.findOne({
       participants: {
         $all: [req.user.id, receiverId],
       },
-    });
+    })
+      .populate("participants", "-password")
+      .populate({
+        path: "lastMessage",
+        populate: { path: "sender", select: "name profilePic" },
+      });
 
     if (conversation) {
       return res.status(200).json({
@@ -18,10 +29,14 @@ const createConversation = async (req, res) => {
       });
     }
 
-    // Create new conversation
     conversation = await Conversation.create({
       participants: [req.user.id, receiverId],
     });
+
+    conversation = await Conversation.findById(conversation._id).populate(
+      "participants",
+      "-password"
+    );
 
     res.status(201).json({
       success: true,
@@ -40,7 +55,13 @@ const getConversations = async (req, res) => {
   try {
     const conversations = await Conversation.find({
       participants: req.user.id,
-    }).populate("participants", "-password");
+    })
+      .populate("participants", "-password")
+      .populate({
+        path: "lastMessage",
+        populate: { path: "sender", select: "name profilePic" },
+      })
+      .sort({ updatedAt: -1 });
 
     res.status(200).json({
       success: true,

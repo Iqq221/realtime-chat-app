@@ -4,11 +4,13 @@ const { Server } = require("socket.io");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 const connectDB = require("./src/config/db");
 const authRoutes = require("./src/routes/authRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const conversationRoutes = require("./src/routes/conversationRoutes");
 const messageRoutes = require("./src/routes/messageRoutes");
+const { setupSocket } = require("./src/socket/socket");
 
 dotenv.config();
 
@@ -23,28 +25,29 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
     credentials: true,
   },
 });
 
-io.on("connection", (socket) => {
-  console.log("🟢 User connected:", socket.id);
+app.set("io", io);
 
-  socket.on("disconnect", () => {
-    console.log("🔴 User disconnected:", socket.id);
-  });
-});
+// Wire Socket logic
+setupSocket(io);
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
     credentials: true,
   })
 );
 app.use(cookieParser());
+
+// Static folder for uploaded avatar & chat images
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api/auth", authRoutes);
