@@ -1,0 +1,6 @@
+# Server specific ignore rules
+node_modules/
+.env
+uploads/*
+!uploads/.gitkeep
+*.log

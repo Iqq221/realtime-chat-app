@@ -1,19 +1,39 @@
 # Dependencies
-client/node_modules
-server/node_modules
+node_modules/
+**/node_modules/
 
-# Environment variables
+# Environment variables (CRITICAL: Do NOT commit secrets)
+.env
+.env.local
+.env.*.local
 server/.env
+
+# Uploads directory (Ignore uploaded user avatars & chat media)
+server/uploads/*
+!server/uploads/.gitkeep
+
+# Build outputs
+dist/
+client/dist/
+build/
 
 # Logs
 *.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
 
-# Build folders
-client/dist
-
-# OS files
+# System & OS Files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Editor
-.vscode
+# IDE & Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
